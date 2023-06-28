@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/ip.h>
 #include "../utils/header.h"
+#include "Sniff.h"
 
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
@@ -37,20 +38,16 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
     }
 }
 
-int generic_sniff(char* filter_expression, char* interface)
+void generic_sniff(char* filter_expression, char* interface)
 {
     // file descriptor for pcap object
     pcap_t *handle;
     char errbuf[PCAP_ERRBUF_SIZE];
     struct bpf_program fp;
 
-   // char filter_exp[] = "icmp src host 192.168.4.37";
-
     //netmask
     bpf_u_int32 net;
 
-    //char interface[] = "br-fb54a952a665"
-    char interface[] = "en0";
 
     // Step 1: Open live pcap session on Network interface card with name interface name
     handle = pcap_open_live(interface, BUFSIZ, 1, 1000, errbuf);
@@ -62,17 +59,14 @@ int generic_sniff(char* filter_expression, char* interface)
     // Step 3: Capture packets
     pcap_loop(handle, -1, got_packet, NULL);
     pcap_close(handle); // Close the handle
-    return 0;
 }
 
-int sniff_and_do(char* filter_expression, char* interface_name, void (*on_packet)(u_char *args, const struct pcap_pkthdr *header, const u_char *packet))
+void sniff_and_do(char* filter_expression, char* interface_name, void (*on_sniff_packet)(u_char *args, const struct pcap_pkthdr *header, const u_char *packet))
 {
     // file descriptor for pcap object
     pcap_t *handle;
     char errbuf[PCAP_ERRBUF_SIZE];
     struct bpf_program fp;
-
-   // char filter_exp[] = "icmp src host 192.168.4.37";
 
     //netmask
     bpf_u_int32 net;
@@ -85,12 +79,8 @@ int sniff_and_do(char* filter_expression, char* interface_name, void (*on_packet
     pcap_setfilter(handle, &fp);
 
     // Step 3: Capture packets
-    pcap_loop(handle, -1, got_packet, NULL);
+    pcap_loop(handle, -1, on_sniff_packet, NULL);
     pcap_close(handle); // Close the handle
-    return 0;
 }
 
-int main(int argc, char *argv[])
-{
-    generic_sniff(argv[1], argv[2]);
-}
+

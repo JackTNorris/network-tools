@@ -1,2 +1,2 @@
-packet: sniffer.c ../utils/checksum.c spoof.c
-	gcc sniffer.c ../utils/checksum.c spoof.c -lpcap
+packet: run-sniffer.c Sniff.c
+	gcc run-sniffer.c Sniff.c -lpcap -o sniffer
